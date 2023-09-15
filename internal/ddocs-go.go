@@ -2,80 +2,79 @@ package internal
 
 import (
 	"bytes"
-  "os/exec"
-  "fmt"
 	"compress/flate"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"os"
+	"os/exec"
 )
 
 func Compress(input string) (string, error) {
 	var buf bytes.Buffer
 	compressor, err := flate.NewWriter(&buf, flate.DefaultCompression)
-  if err != nil {
-    return "", err
-  }
+	if err != nil {
+		return "", err
+	}
 	compressor.Write([]byte(input))
 	compressor.Close()
-  base := base64.StdEncoding.EncodeToString(buf.Bytes())
+	base := base64.StdEncoding.EncodeToString(buf.Bytes())
 	return base, nil
 }
 
 func Decompress(compressedData string) (string, error) {
-  base, err := base64.StdEncoding.DecodeString(compressedData)
-  if err != nil {
-    return "", err
-  }
-  buf := bytes.NewReader([]byte(base))
+	base, err := base64.StdEncoding.DecodeString(compressedData)
+	if err != nil {
+		return "", err
+	}
+	buf := bytes.NewReader([]byte(base))
 	decompressor := flate.NewReader(buf)
 	decompressedData, err := io.ReadAll(decompressor)
 	decompressor.Close()
-  if err != nil {
-    return "", err
-  }
-  return string(decompressedData), nil
+	if err != nil {
+		return "", err
+	}
+	return string(decompressedData), nil
 }
 
-
 func WriteToFile(data map[string]string) error {
-  r, err := json.Marshal(data)
-  if err != nil {
-    return err
-  }
+	r, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
 
-  home, err := os.UserHomeDir()
-  if err != nil {
-    return err
-  }
-  home += "/.config/ddocs/data.json"
-  err = os.WriteFile(home, r, 0644)
-  if err != nil {
-    return err
-  }
-  return nil
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return err
+	}
+	home += "/.config/ddocs/data.json"
+	err = os.WriteFile(home, r, 0644)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func ReadFile() (map[string]string, error) {
-  home, err := os.UserHomeDir()
-  if err != nil {
-    return nil, err
-  }
-  home += "/.config/ddocs/data.json"
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil, err
+	}
+	home += "/.config/ddocs/data.json"
 
-  data, err := os.ReadFile(home)
-  if err != nil {
-    return nil, err
-  }
+	data, err := os.ReadFile(home)
+	if err != nil {
+		return nil, err
+	}
 
-  var datamap  map[string]string
-  err = json.Unmarshal(data, &datamap)
-  if err != nil {
-    return nil, err
-  }
+	var datamap map[string]string
+	err = json.Unmarshal(data, &datamap)
+	if err != nil {
+		return nil, err
+	}
 
-  return datamap, nil
+	return datamap, nil
 }
 
 func Editor(old_text string) (string, error) {
